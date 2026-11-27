@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>欣芳 116 碩士班報名</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+/* VOICE: a tutor's wall calendar, calm and plain
+   IDEA: desk calendar with coloured stickers for each deadline and exam
+   PICTURE: the month grid itself, stickers on the days
+   COLOUR and TYPE: white paper, ink, four sticker colours by kind; Noto Sans TC
+   LAYOUT: legend + next deadline, month grids; agenda list under 760px; side drawer for one program */
+:root{color-scheme:light dark;--bg:light-dark(#f4f5f8,#14161b);--card:light-dark(#fff,#1d2027);--ink:light-dark(#1b1e26,#e9ebf0);--mute:light-dark(#69707e,#9aa1b0);--line:light-dark(#e3e6ec,#2d313b);--miss:light-dark(#c62828,#ff7a70);--missbg:light-dark(#fdecea,#3a1f1f);--ok:light-dark(#1e7a46,#5fd393);--okbg:light-dark(#e5f5ec,#16301f);
+--dl:light-dark(#d93a2f,#ff6b5e);--up:light-dark(#e07b16,#ffa24a);--ex:light-dark(#6b46c1,#a98bff);--iv:light-dark(#2b6cb0,#6aa8ff)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 "Noto Sans TC",system-ui,sans-serif;overflow-x:clip}
+.wrap{max-width:1240px;margin:0 auto;padding:clamp(18px,3vw,36px) max(3vw,12px) 60px}
+h1{font-size:clamp(26px,4vw,40px);line-height:1.1;margin:0 0 10px;font-weight:900}
+.bar{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;margin-bottom:18px;font-size:14px;color:var(--mute)}
+.lg{display:inline-flex;align-items:center;gap:6px}.lg i{width:12px;height:12px;border-radius:3px}
+.next{background:var(--missbg);color:var(--miss);border:0;font:inherit;font-size:14px;border-radius:999px;padding:6px 14px;cursor:pointer;min-height:36px}
+.docbtn{background:var(--card);color:var(--ink);border:1px solid var(--line);font:inherit;font-size:14px;border-radius:999px;padding:6px 14px;cursor:pointer;min-height:36px}
+.month{margin-bottom:26px}
+.month h2{font-size:22px;margin:0 0 8px}
+.cal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));background:var(--line);gap:1px;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.wd{background:var(--card);text-align:center;font-size:13px;color:var(--mute);padding:6px 0}
+.day{background:var(--card);min-height:96px;padding:4px 4px 6px;display:flex;flex-direction:column;gap:3px}
+.day.out{background:light-dark(#f8f9fb,#181a20)}
+.day.out .n{opacity:.35}
+.n{font-size:13px;color:var(--mute);padding:0 3px}
+.day.today .n{background:var(--ink);color:var(--bg);border-radius:999px;width:max-content;padding:0 7px;font-weight:700}
+.ev{display:flex;align-items:center;gap:4px;width:100%;text-align:left;border:0;border-left:4px solid var(--k);background:light-dark(color-mix(in srgb,var(--k) 12%,#fff),color-mix(in srgb,var(--k) 22%,#1d2027));color:var(--ink);font:inherit;font-size:12.5px;line-height:1.3;padding:3px 5px;border-radius:5px;cursor:pointer}
+.ev:hover,.ev:focus-visible{outline:2px solid var(--k);outline-offset:0}
+.ev span{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ev b{flex:none;font-size:11px;background:var(--miss);color:#fff;border-radius:999px;padding:0 6px}
+.ev b.ok{background:var(--ok)}
+.ev.past{opacity:.45}
+.agenda{display:none}
+.ev .full{display:none}.agenda .ev .full,.undated .ev .full{display:block}.agenda .ev .sh,.undated .ev .sh{display:none}
+.ag-day{display:grid;grid-template-columns:64px 1fr;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
+.ag-d{font-weight:700;line-height:1.2}.ag-d small{display:block;color:var(--mute);font-weight:400;font-size:13px}
+.ag-day .ev{font-size:15px;padding:8px 10px;margin-bottom:6px;min-height:44px}
+.ag-day.today .ag-d{color:var(--miss)}
+.undated{margin-top:8px;font-size:15px;color:var(--mute)}
+.undated .ev{display:inline-flex;width:auto;font-size:14px;padding:6px 10px;min-height:40px}
+/* drawer */
+.scrim{position:fixed;inset:0;background:rgba(10,14,24,.35);opacity:0;pointer-events:none;transition:opacity .2s}
+.drawer{visibility:hidden;position:fixed;top:0;right:0;height:100%;width:min(420px,100%);background:var(--card);box-shadow:-8px 0 30px rgba(0,0,0,.15);transform:translateX(100%);transition:transform .22s,visibility .22s;overflow-y:auto;padding:20px 20px 40px}
+.open .scrim{opacity:1;pointer-events:auto}.open .drawer{transform:none;visibility:visible}
+.close{float:right;border:0;background:transparent;color:var(--mute);font:inherit;font-size:28px;line-height:1;width:44px;height:44px;cursor:pointer}
+.drawer h3{font-size:22px;line-height:1.25;margin:4px 0 6px}
+.drawer h3 b{color:var(--c)}
+.meta{color:var(--mute);font-size:14px}.meta span{white-space:nowrap;margin-right:12px}
+.dates{margin:12px 0;display:flex;flex-direction:column;gap:4px;font-size:15px}
+.dates div{display:flex;gap:8px;align-items:center}.dates i{width:10px;height:10px;border-radius:3px;flex:none}
+.warn{color:var(--miss);font-size:14px;font-weight:500;margin:6px 0}
+.miss{background:var(--missbg);border-radius:10px;padding:8px 8px 4px;margin-top:10px}
+.mh{color:var(--miss);font-weight:700;padding:0 6px 2px}
+.ok{background:var(--okbg);color:var(--ok);font-weight:700;border-radius:10px;padding:10px 12px;margin-top:10px}
+.chk{display:flex;align-items:flex-start;gap:10px;padding:7px 6px;min-height:44px;cursor:pointer;flex:1}
+.chk input{width:22px;height:22px;margin:1px 0 0;flex:none;accent-color:var(--ok);cursor:pointer}
+.chk input:focus-visible{outline:3px solid #4a7bd8;outline-offset:2px}
+.chk em{font-style:normal}.chk small{color:var(--mute);font-size:12px;margin-left:6px}
+.chk.done em{text-decoration:line-through;color:var(--mute)}
+.r{display:flex;align-items:center}
+.x{border:0;background:transparent;color:var(--mute);font:inherit;font-size:13px;min-height:36px;padding:0 8px;cursor:pointer}
+.more summary{cursor:pointer;color:var(--mute);font-size:14px;padding:10px 6px;list-style:none}
+.more summary::-webkit-details-marker{display:none}.more summary::before{content:"▸ "}.more[open] summary::before{content:"▾ "}
+.add{display:flex;gap:6px;margin:6px 0}
+.add input{flex:1;font:inherit;font-size:16px;border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:8px;padding:8px 10px;min-height:44px}
+.add button{font:inherit;border:0;background:light-dark(#eceff4,#2a2e37);color:var(--ink);border-radius:8px;padding:0 14px;min-height:44px;cursor:pointer}
+.save{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);background:var(--ink);color:var(--bg);border-radius:999px;padding:8px 16px;font-size:14px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:9}
+.save.on{opacity:.92}
+.foot{color:var(--mute);font-size:14px}
+.tabs{display:flex;gap:6px;margin:0 0 14px}
+.tabs a{text-decoration:none;color:var(--ink);border:1px solid var(--line);background:var(--card);border-radius:999px;padding:8px 18px;min-height:44px;display:inline-flex;align-items:center;font-size:15px}
+.tabs a[aria-current=page]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.board{columns:340px 3;column-gap:22px}
+.grp{display:contents}.grp h2{break-after:avoid;break-inside:avoid}
+.pc{break-inside:avoid}
+.grp h2{font-size:18px;margin:0 0 8px;color:#fff;background:var(--c);border-radius:10px;padding:8px 14px;display:flex;justify-content:space-between}
+.grp h2 small{font-weight:400;font-size:14px}
+.pc{display:block;width:100%;text-align:left;font:inherit;color:var(--ink);background:var(--card);border:0;border-left:6px solid var(--c);border-radius:10px;padding:12px 14px;margin-bottom:10px;cursor:pointer;box-shadow:0 1px 3px rgba(20,30,60,.08)}
+.pc:hover,.pc:focus-visible{outline:2px solid var(--c)}
+.pc h4{margin:0;font-size:17px;line-height:1.3;display:flex;justify-content:space-between;gap:8px}
+.pc h4 b{color:var(--c);margin-right:6px}
+.pc h4 i{font-style:normal;flex:none;font-size:12px;background:var(--miss);color:#fff;border-radius:999px;padding:1px 8px;height:max-content}
+.pc h4 i.ok{background:var(--ok)}
+.pc .row{font-size:14px;color:var(--mute);margin-top:4px}
+.pc .row em{font-style:normal;color:var(--dl);font-weight:700}
+.io{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:8px}
+.io button{font:inherit;font-size:14px;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:8px;padding:6px 14px;min-height:40px;cursor:pointer}
+#iotext{width:100%;font:13px/1.4 monospace;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);padding:8px;margin-top:8px}
+@media(max-width:760px){.grid-view{display:none}.agenda{display:block}}
+@media(prefers-reduced-motion:reduce){.drawer,.scrim,.save{transition:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>欣芳 116 碩士班報名</h1>
+  <nav class="tabs" aria-label="檢視"><a href="#list" data-tab="list">總覽清單</a><a href="#calendar" data-tab="calendar">行事曆</a></nav>
+  <div class="bar" id="bar"></div>
+  <section id="v-list" class="view"><div class="board" id="board"></div></section>
+  <section id="v-calendar" class="view" hidden><div class="grid-view" id="months"></div>
+  <div class="agenda" id="agenda"></div>
+  <div class="undated" id="undated"></div></section>
+  <p class="foot">點卡片或日曆上的色塊，就能看那一組還缺什麼並打勾。紅色數字是還缺幾項。日期以各校簡章為準。<br>打勾紀錄存在這台裝置的瀏覽器裡；換裝置時用「匯出進度」複製一段文字，到另一台按「匯入進度」貼上。</p>
+  <div class="io"><button data-io="export">匯出進度</button><button data-io="import">匯入進度</button><span id="iomsg" class="meta"></span></div>
+  <div id="iobox" hidden><textarea id="iotext" rows="4" aria-label="進度文字"></textarea><div class="io"><button data-io="apply">套用</button><button data-io="cancel">取消</button></div></div>
+</div>
+<div id="dw"><div class="scrim" data-close="1"></div><aside class="drawer" id="drawer" aria-label="科系詳細" tabindex="-1"></aside></div>
+<div class="save" id="save" aria-live="polite"></div>
+<script type="application/json" id="state">{"checked":{"d_trans":true,"d_auto":true,"d_cv":true,"d_rp":true,"d_cert":true},"custom":{}}</script>
+<script id="app">
+{
+const DOCS=[
+ ["d_grad","畢業證書（學歷證明）影本","北科合併版 PDF 裡目前是空白頁，要補"],
+ ["d_trans","歷年成績單（含排名）",""],
+ ["d_rank","名次證明","成績單上有排名的話雲科可免"],
+ ["d_auto","自傳",""],
+ ["d_cv","簡歷／學經歷表",""],
+ ["d_rp","研究計畫／讀書計畫","目前是北科版，其他校要改校名和方向"],
+ ["d_eng","英文能力證明（多益等）","台科大科管所要"],
+ ["d_cert","其他有利資料（獎狀、證明）",""],
+ ["d_rec","推薦人許哲銓老師答應寫","中興資科所要 1 封"],
+ ["d_photo","證件照電子檔","每間報名系統都要上傳"]
+];
+const DOCN=Object.fromEntries(DOCS.map(d=>[d[0],d[1]]));
+const S=(t)=>["reg","網路報名"+(t?"（"+t+"）":"")];
+const PAY=["pay","繳報名費"];
+const BOOK=["brochure","對照簡章確認審查資料"];
+const TKT=["ticket","印准考證"];
+const KAI=["subj","報名時選考「計算機概論」"];
+
+const G=[
+ {n:"推薦信 2 封",c:"#c0392b",p:[
+  {id:"ncku_ai",s:"成大",t:"人工智慧科技碩士學位學程",dl:"2026-12-07T12:00",dt:"12/7（一）12:00",m:["上傳 12/7 23:59","15 名","審查50%＋面試50%"],warn:"推薦函要 2 封，目前只有 1 封",docs:["d_trans","d_auto","d_rp","d_photo"],st:[["rec2","找到第 2 封推薦函"],S(),PAY,BOOK,["up","上傳審查資料"]]}]},
+ {n:"推薦信 1 封",c:"#d9622b",p:[
+  {id:"nchu_ds",s:"中興",t:"資料科學與資訊計算研究所",dl:"2026-12-08T17:00",dt:"12/8（二）17:00",m:["面試 3/11","10 名","審查＋面試"],docs:["d_trans","d_auto","d_rp","d_rec","d_photo"],st:[S(),PAY,BOOK,["up","上傳審查資料"],["recsent","許老師 12/10 前送出推薦函"]]}]},
+ {n:"不用推薦信｜書審＋面試",c:"#2b6cb0",p:[
+  {id:"ntut_imf",s:"北科",t:"資訊與財金管理系碩士班",dl:"2026-12-10T17:00",dt:"12/10（四）17:00",m:["上傳 12/11 12:00","面試 2/18","12 名","審查30%＋面試70%"],docs:["d_grad","d_trans","d_auto","d_cv","d_rp","d_cert","d_photo"],st:[["merge","畢業證書補進合併版 PDF（≤25MB）"],S(),PAY,["up","上傳合併版 PDF"]]},
+  {id:"ntut_ai",s:"北科",t:"人工智慧科技碩士學位學程",dl:"2026-12-10T17:00",dt:"12/10（四）17:00",m:["上傳 12/11 12:00","面試 2/17","21 名","審查篩選＋面試100%"],docs:["d_grad","d_trans","d_auto","d_cv","d_rp","d_cert","d_photo"],st:[["rpfix","研究計畫改成 AI 學程版本"],["merge","合併成一份 PDF（≤25MB）"],S(),PAY,BOOK,["up","上傳合併版 PDF"]]},
+  {id:"ntut_sec",s:"北科",t:"資訊安全碩士學位學程",dl:"2026-12-10T17:00",dt:"12/10（四）17:00",m:["上傳 12/11 12:00","面試 2/19","16 名","審查50%＋面試50%"],docs:["d_grad","d_trans","d_auto","d_cv","d_rp","d_cert","d_photo"],st:[["rpfix","研究計畫改成資安學程版本"],["merge","合併成一份 PDF（≤25MB）"],S(),PAY,BOOK,["up","上傳合併版 PDF"]]},
+  {id:"ntust_mb",s:"台科大",t:"資管系 乙組（智能營運與數位管理）",dl:"2026-12-10T17:00",dt:"12/10（四）17:00",m:["上傳 12/11 17:00","面試 2/19–2/21","6 名","口試50%＋審查50%"],docs:["d_trans","d_auto","d_rp","d_cert","d_photo"],st:[["rpfix","研究計畫改成台科大資管版本"],["split","每項資料分開存 PDF（各≤10MB）"],S(),PAY,BOOK,["up","逐項上傳"]]},
+  {id:"ntust_ma",s:"台科大",t:"資管系 甲組（資訊科技與應用服務）",dl:"2026-12-10T17:00",dt:"12/10（四）17:00",m:["上傳 12/11 17:00","面試 2/19–2/21","8 名","口試50%＋審查50%"],docs:["d_trans","d_auto","d_rp","d_cert","d_photo"],st:[["rpfix","研究計畫改成台科大資管版本"],["split","每項資料分開存 PDF（各≤10MB）"],S(),PAY,BOOK,["up","逐項上傳"]]},
+  {id:"ntust_tm",s:"台科大",t:"科技管理研究所",dl:"2026-12-10T17:00",dt:"12/10（四）17:00",m:["上傳 12/11 17:00","面試 2/19–2/21","7 名","口試55%＋審查45%"],docs:["d_trans","d_auto","d_rp","d_eng","d_cert","d_photo"],st:[["rpfix","研究計畫改成科管所版本"],["split","每項資料分開存 PDF（各≤10MB）"],S(),PAY,BOOK,["up","逐項上傳"]]},
+  {id:"ntust_sec",s:"台科大",t:"資管系 資訊安全科技與管理碩士班",dl:"2026-12-10T17:00",dt:"12/10（四）17:00",m:["上傳 12/11 17:00","面試 2/19–2/21","5 名","口試50%＋審查50%"],docs:["d_trans","d_auto","d_rp","d_cert","d_photo"],st:[["rpfix","研究計畫改成資安版本"],["split","每項資料分開存 PDF（各≤10MB）"],S(),PAY,BOOK,["up","逐項上傳"]]},
+  {id:"yuntech_ds",s:"雲科",t:"智慧數據科學研究所",dl:"2027-01-04T23:59",dt:"1/4（一）23:59",m:["上傳 1/5 17:00","面試 3/6","14 名","審查50%＋面試50%"],docs:["d_trans","d_auto","d_rp","d_photo"],st:[["rpfix","研究計畫改成數據科學版本"],S(),PAY,BOOK,["up","上傳審查資料"]]}]},
+ {n:"只考一科筆試（計概）",c:"#6b46c1",p:[
+  {id:"ntpu_im",s:"北大",t:"資訊管理研究所",dl:"2026-12-02T13:00",dt:"12/2（三）13:00",m:["筆試 2/13–2/14","9 名","筆試100%"],docs:["d_photo"],st:[S(),PAY,KAI,TKT]},
+  {id:"nchu_mis",s:"中興",t:"資訊管理學系",dl:"2026-12-08T17:00",dt:"12/8（二）17:00",m:["筆試 2/2","面試 3/12","21 名","計概（含程式設計）＋面試"],docs:["d_photo"],st:[S(),PAY,TKT]},
+  {id:"nchu_ec",s:"中興",t:"科管所 電子商務碩士班 甲組",dl:"2026-12-08T17:00",dt:"12/8（二）17:00",m:["筆試 2/2","面試 3/12","4 名"],docs:["d_photo"],st:[S(),PAY,KAI,TKT]},
+  {id:"nchu_tm",s:"中興",t:"科管所 科技管理碩士班 甲組",dl:"2026-12-08T17:00",dt:"12/8（二）17:00",m:["筆試 2/2","面試 3/12","4 名"],docs:["d_photo"],st:[S(),PAY,KAI,TKT]},
+  {id:"ccu_ait",s:"中正",t:"會計與資訊科技學系 乙組",dl:"2026-12-08T17:00",dt:"12/8（二）17:00",m:["筆試 1/27","5 名","筆試100%"],docs:["d_photo"],st:[S(),["pay","繳報名費（當天 16:30 前）"],TKT]},
+  {id:"nycu_ms",s:"陽明交大",t:"管理科學系 乙組（商業智慧分析）",dl:"2026-12-15T17:00",dt:"12/15（二）17:00",m:["筆試 1/27–1/28","3 名","計概＋口試"],docs:["d_photo"],st:[S(),PAY,TKT]},
+  {id:"nycu_iot",s:"陽明交大",t:"智慧計算與科技所 智慧物聯網產業碩士專班",dl:"2026-12-15T17:00",dt:"12/15（二）17:00",m:["筆試 1/27–1/28","15 名","計概＋審查＋口試","台南校區"],docs:["d_trans","d_auto","d_rp","d_photo"],st:[["reccheck","確認這組要不要推薦函"],S(),PAY,BOOK,["up","上傳審查資料"],TKT]},
+  {id:"ncue_im",s:"彰師大",t:"資訊管理學系",dl:"",dt:"約 12 月中開放（待公告）",m:["筆試約 3 月初","10 名（115 年）","筆試100%"],warn:"116 簡章還沒公告，以上是 115 年的參考",docs:["d_photo"],st:[["wait","等 116 簡章公告、確認日期"],S(),PAY,KAI,TKT]},
+  {id:"yuntech_im",s:"雲科",t:"資訊管理系碩士班",dl:"2027-01-04T23:59",dt:"1/4（一）23:59",m:["上傳 1/5 17:00","筆試 3/6","27 名","計概70%＋書審30%","不能帶計算機"],docs:["d_trans","d_rank","d_auto","d_cert","d_photo"],st:[S(),PAY,["up","上傳審查資料"],TKT]}]}
+];
+const EV={
+ ncku_ai:[["2026-12-07","dl","報名＋上傳 12:00"]],
+ nchu_ds:[["2026-12-08","dl","報名＋上傳 17:00"],["2026-12-10","up","推薦函送出"],["2027-03-11","iv","面試"]],
+ ntut_imf:[["2026-12-10","dl","報名 17:00"],["2026-12-11","up","上傳 12:00"],["2027-02-18","iv","面試"]],
+ ntut_ai:[["2026-12-10","dl","報名 17:00"],["2026-12-11","up","上傳 12:00"],["2027-02-17","iv","面試"]],
+ ntut_sec:[["2026-12-10","dl","報名 17:00"],["2026-12-11","up","上傳 12:00"],["2027-02-19","iv","面試"]],
+ ntust_mb:[["2026-12-10","dl","報名 17:00"],["2026-12-11","up","上傳 17:00"],["2027-02-19","iv","口試 2/19–21"]],
+ ntust_ma:[["2026-12-10","dl","報名 17:00"],["2026-12-11","up","上傳 17:00"],["2027-02-19","iv","口試 2/19–21"]],
+ ntust_tm:[["2026-12-10","dl","報名 17:00"],["2026-12-11","up","上傳 17:00"],["2027-02-19","iv","口試 2/19–21"]],
+ ntust_sec:[["2026-12-10","dl","報名 17:00"],["2026-12-11","up","上傳 17:00"],["2027-02-19","iv","口試 2/19–21"]],
+ yuntech_ds:[["2027-01-04","dl","報名 23:59"],["2027-01-05","up","上傳 17:00"],["2027-03-06","iv","面試"]],
+ ntpu_im:[["2026-12-02","dl","報名 13:00"],["2027-02-13","ex","筆試 2/13–14"]],
+ nchu_mis:[["2026-12-08","dl","報名 17:00"],["2027-02-02","ex","筆試"],["2027-03-12","iv","面試"]],
+ nchu_ec:[["2026-12-08","dl","報名 17:00"],["2027-02-02","ex","筆試"],["2027-03-12","iv","面試"]],
+ nchu_tm:[["2026-12-08","dl","報名 17:00"],["2027-02-02","ex","筆試"],["2027-03-12","iv","面試"]],
+ ccu_ait:[["2026-12-08","dl","報名 17:00"],["2027-01-27","ex","筆試"]],
+ nycu_ms:[["2026-12-15","dl","報名 17:00"],["2027-01-27","ex","筆試 1/27–28"]],
+ nycu_iot:[["2026-12-15","dl","報名 17:00"],["2027-01-27","ex","筆試 1/27–28"]],
+ ncue_im:[],
+ yuntech_im:[["2027-01-04","dl","報名 23:59"],["2027-01-05","up","上傳 17:00"],["2027-03-06","ex","筆試"]]
+};
+
+const KIND={dl:["報名截止","--dl"],up:["上傳／推薦函","--up"],ex:["筆試","--ex"],iv:["面試／口試","--iv"]};
+const SHORT={ncku_ai:"成大 AI學程",nchu_ds:"中興 資科所",ntut_imf:"北科 資財",ntut_ai:"北科 AI學程",ntut_sec:"北科 資安學程",ntust_mb:"台科 資管乙",ntust_ma:"台科 資管甲",ntust_tm:"台科 科管所",ntust_sec:"台科 資安班",yuntech_ds:"雲科 數據所",ntpu_im:"北大 資管",nchu_mis:"中興 資管",nchu_ec:"中興 電商甲",nchu_tm:"中興 科管甲",ccu_ait:"中正 會資乙",nycu_ms:"陽明交大 管科乙",nycu_iot:"陽明交大 物聯網",ncue_im:"彰師 資管",yuntech_im:"雲科 資管"};
+const P={};G.forEach(g=>g.p.forEach(p=>{p.c=g.c;p.g=g.n;P[p.id]=p}));
+let st;try{st=JSON.parse(document.getElementById("state").textContent)}catch(e){st={}}
+st.checked=st.checked||{};st.custom=st.custom||{};
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const key=(pid,sid)=>pid+"."+sid;
+const items=p=>[...p.docs.map(d=>({k:d,name:DOCN[d],shared:1})),...p.st.map(s=>({k:key(p.id,s[0]),name:s[1]})),...(st.custom[p.id]||[]).map(c=>({k:key(p.id,c.id),name:c.t,cid:c.id}))];
+const miss=p=>items(p).filter(i=>!st.checked[i.k]);
+const TODAY=(()=>{const d=new Date(Date.now()+8*36e5);return d.toISOString().slice(0,10)})();
+const WD=["日","一","二","三","四","五","六"];
+const byDate={};Object.entries(EV).forEach(([id,es])=>es.forEach(([d,k,l])=>(byDate[d]=byDate[d]||[]).push({id,k,l,d})));
+const order={dl:0,up:1,ex:2,iv:3};Object.values(byDate).forEach(a=>a.sort((x,y)=>order[x.k]-order[y.k]));
+function chip(e){const p=P[e.id],m=miss(p).length,past=e.d<TODAY;const badge=(e.k==="dl"||e.k==="up")?(m?`<b>缺${m}</b>`:`<b class="ok">✓</b>`):"";
+ return `<button class="ev${past?" past":""}" style="--k:var(${KIND[e.k][1]})" data-open="${esc(e.id)}" title="${esc(SHORT[e.id]+" "+e.l)}"><span class="full">${esc(SHORT[e.id])}・${esc(e.l)}</span><span class="sh">${esc(SHORT[e.id])}</span>${badge}</button>`}
+function months(){const out=[];for(const [y,m] of [[2026,11],[2026,12],[2027,1],[2027,2],[2027,3]]){
+ const first=new Date(Date.UTC(y,m-1,1)),start=first.getUTCDay(),days=new Date(Date.UTC(y,m,0)).getUTCDate();
+ let cells=WD.map(w=>`<div class="wd">${w}</div>`).join("");
+ const total=Math.ceil((start+days)/7)*7;
+ for(let i=0;i<total;i++){const dd=i-start+1;if(dd<1||dd>days){cells+=`<div class="day out"></div>`;continue}
+  const iso=`${y}-${String(m).padStart(2,"0")}-${String(dd).padStart(2,"0")}`;
+  cells+=`<div class="day${iso===TODAY?" today":""}"><div class="n">${dd}</div>${(byDate[iso]||[]).map(chip).join("")}</div>`}
+ out.push(`<section class="month"><h2>${y} 年 ${m} 月</h2><div class="cal">${cells}</div></section>`)}
+ return out.join("")}
+function agenda(){return Object.keys(byDate).sort().filter(d=>d>=TODAY).map(d=>{const dt=new Date(d+"T00:00:00Z");
+ return `<div class="ag-day${d===TODAY?" today":""}"><div class="ag-d">${dt.getUTCMonth()+1}/${dt.getUTCDate()}<small>週${WD[dt.getUTCDay()]}</small></div><div>${byDate[d].map(chip).join("")}</div></div>`}).join("")}
+function row(i,pid){const on=!!st.checked[i.k];return `<div class="r"><label class="chk${on?" done":""}"><input type="checkbox" data-k="${esc(i.k)}"${on?" checked":""}><span><em>${esc(i.name)}</em>${i.shared?"<small>共用</small>":""}</span></label>${i.cid?`<button class="x" data-del="${esc(pid)}|${esc(i.cid)}">刪除</button>`:""}</div>`}
+function drawerHtml(id){
+ if(id==="docs"){const mi=DOCS.filter(d=>!st.checked[d[0]]),dn=DOCS.filter(d=>st.checked[d[0]]);
+  const r=d=>row({k:d[0],name:d[1]+(d[2]?"（"+d[2]+"）":"")},"");
+  return `<button class="close" data-close="1" aria-label="關閉">×</button><h3>共用資料</h3><p class="meta">勾掉後，所有用到這份資料的科系都會一起更新。</p>${mi.length?`<div class="miss"><div class="mh">還缺 ${mi.length} 份</div>${mi.map(r).join("")}</div>`:`<div class="ok">都備齊了 ✓</div>`}${dn.length?`<details class="more"><summary>已備好 ${dn.length} 份</summary>${dn.map(r).join("")}</details>`:""}`}
+ const p=P[id];if(!p)return"";const all=items(p),m=all.filter(i=>!st.checked[i.k]),dn=all.filter(i=>st.checked[i.k]);
+ const ds=(EV[id]||[]).map(([d,k,l])=>{const t=new Date(d+"T00:00:00Z");return `<div><i style="background:var(${KIND[k][1]})"></i>${t.getUTCMonth()+1}/${t.getUTCDate()}（${WD[t.getUTCDay()]}）${esc(l)}</div>`}).join("")||`<div>${esc(p.dt)}</div>`;
+ return `<button class="close" data-close="1" aria-label="關閉">×</button><div class="meta" style="color:${p.c}">${esc(p.g)}</div><h3 style="--c:${p.c}"><b>${esc(p.s)}</b> ${esc(p.t)}</h3><div class="meta">${p.m.map(x=>`<span>${esc(x)}</span>`).join("")}</div>${p.warn?`<div class="warn">⚠ ${esc(p.warn)}</div>`:""}<div class="dates">${ds}</div>
+ ${m.length?`<div class="miss"><div class="mh">還缺 ${m.length} 項</div>${m.map(i=>row(i,id)).join("")}</div>`:`<div class="ok">全部完成 ✓</div>`}
+ <details class="more"><summary>${dn.length?`已完成 ${dn.length} 項・`:""}新增項目</summary>${dn.map(i=>row(i,id)).join("")}<form class="add" data-add="${esc(id)}"><input name="t" placeholder="新增項目…" maxlength="60" aria-label="新增項目"><button>加入</button></form></details>`}
+let cur=null;
+function remember(){try{cur?sessionStorage.setItem("xf_open",cur):sessionStorage.removeItem("xf_open")}catch(e){}}
+function openD(id){cur=id;remember();const d=document.getElementById("drawer");d.innerHTML=drawerHtml(id);document.getElementById("dw").className="open";d.focus()}
+function closeD(){cur=null;remember();document.getElementById("dw").className=""}
+function board(){return G.map(g=>`<section class="grp" style="--c:${g.c}"><h2>${esc(g.n)}<small>${g.p.length} 個</small></h2>${g.p.map(p=>{const m=miss(p).length;
+ return `<button class="pc" data-open="${esc(p.id)}"><h4><span><b>${esc(p.s)}</b>${esc(p.t)}</span><i class="${m?"":"ok"}">${m?"缺 "+m:"✓"}</i></h4><div class="row">報名截止 <em>${esc(p.dt)}</em></div><div class="row">${p.m.map(esc).join("　")}</div>${p.warn?`<div class="row" style="color:var(--miss)">⚠ ${esc(p.warn)}</div>`:""}</button>`}).join("")}</section>`).join("")}
+function render(){
+ document.getElementById("board").innerHTML=board();
+ const all=Object.values(P);const nx=Object.keys(byDate).sort().filter(d=>d>=TODAY).flatMap(d=>byDate[d]).find(e=>e.k==="dl"&&miss(P[e.id]).length);
+ const nd=DOCS.filter(d=>!st.checked[d[0]]).length;
+ document.getElementById("bar").innerHTML=Object.values(KIND).map(k=>`<span class="lg"><i style="background:var(${k[1]})"></i>${k[0]}</span>`).join("")+
+  `<button class="docbtn" data-open="docs">共用資料${nd?`・缺 ${nd} 份`:" ✓"}</button>`+(nx?`<button class="next" data-open="${esc(nx.id)}">下一個截止：${esc(SHORT[nx.id])} ${esc(P[nx.id].dt)}・缺 ${miss(P[nx.id]).length} 項</button>`:"");
+ document.getElementById("months").innerHTML=months();
+ document.getElementById("agenda").innerHTML=agenda();
+ const un=all.filter(p=>!(EV[p.id]||[]).length);
+ document.getElementById("undated").innerHTML=un.length?`日期待公告：${un.map(p=>chip({id:p.id,k:"dl",l:"待公告",d:"9999"})).join(" ")}`:"";
+ if(cur)document.getElementById("drawer").innerHTML=drawerHtml(cur);
+}
+const LS="xinfang116_v1";
+try{const v=localStorage.getItem(LS);if(v){const o=JSON.parse(v);st.checked=o.checked||st.checked;st.custom=o.custom||{}}}catch(e){}
+function flash(t){const s=document.getElementById("save");s.textContent=t;s.classList.add("on");clearTimeout(flash.t);flash.t=setTimeout(()=>s.classList.remove("on"),1600)}
+function queue(){render();try{localStorage.setItem(LS,JSON.stringify(st));flash("已儲存")}catch(e){flash("這個瀏覽器無法存檔，請用匯出進度備份")}}
+function setTab(){const h=location.hash==="#calendar"?"calendar":"list";document.getElementById("v-list").hidden=h!=="list";document.getElementById("v-calendar").hidden=h!=="calendar";document.querySelectorAll(".tabs a").forEach(a=>{if(a.dataset.tab===h)a.setAttribute("aria-current","page");else a.removeAttribute("aria-current")})}
+window.addEventListener("hashchange",setTab);
+document.addEventListener("click",async e=>{const b=e.target.closest("[data-io]");if(!b)return;const a=b.dataset.io,box=document.getElementById("iobox"),tx=document.getElementById("iotext"),msg=document.getElementById("iomsg");
+ if(a==="export"){const s=JSON.stringify(st);tx.value=s;box.hidden=false;try{await navigator.clipboard.writeText(s);msg.textContent="已複製，到另一台裝置按「匯入進度」貼上"}catch(_){tx.select();msg.textContent="請手動複製下面的文字"}}
+ if(a==="import"){tx.value="";box.hidden=false;tx.focus();msg.textContent="把匯出的文字貼進來，按套用"}
+ if(a==="cancel"){box.hidden=true;msg.textContent=""}
+ if(a==="apply"){try{const o=JSON.parse(tx.value);if(!o||typeof o.checked!=="object")throw 0;st.checked=o.checked;st.custom=o.custom||{};queue();box.hidden=true;msg.textContent="已套用"}catch(_){msg.textContent="格式不對，請貼上完整的匯出文字"}}});
+document.addEventListener("change",e=>{const k=e.target.dataset&&e.target.dataset.k;if(!k)return;if(e.target.checked)st.checked[k]=true;else delete st.checked[k];queue()});
+document.addEventListener("submit",e=>{const f=e.target.closest("form[data-add]");if(!f)return;e.preventDefault();const v=f.t.value.trim();if(!v)return;(st.custom[f.dataset.add]=st.custom[f.dataset.add]||[]).push({id:"c"+Date.now().toString(36),t:v});queue()});
+document.addEventListener("click",e=>{const o=e.target.closest("[data-open]");if(o){openD(o.dataset.open);return}
+ if(e.target.closest("[data-close]")){closeD();return}
+ const d=e.target.closest("[data-del]");if(d){const [pid,cid]=d.dataset.del.split("|");st.custom[pid]=(st.custom[pid]||[]).filter(c=>c.id!==cid);delete st.checked[key(pid,cid)];queue()}});
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&cur)closeD()});
+render();
+
+setTab();
+}
+</script>
+</body>
+</html>
